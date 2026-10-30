@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: hotel-booking-api
+    runtime: node
+    plan: starter
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /hotels
+    disk:
+      name: hotel-booking-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: DATA_DIR
+        value: /var/data
+
+  - type: web
+    name: hotel-booking-site
+    runtime: static
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: hotel-booking-api
+          property: host
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
